@@ -7,10 +7,6 @@ export const metadata: Metadata = {
 };
 
 export default function BenachrichtigungPage() {
-  return (
-    <main>
-      <Benachrichtigungen />
-    </main>
-  );
+  return <Benachrichtigungen />;
 }
 
