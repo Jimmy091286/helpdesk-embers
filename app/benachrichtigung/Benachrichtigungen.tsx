@@ -14,7 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { useUser } from '@/contexts/UserContext'
-import { CheckCircle, Clock, Maximize2, Phone, MessageCircle, X, AlertCircle } from 'lucide-react'
+import { CheckCircle, Clock, Maximize2, Phone, MessageCircle, AlertCircle } from 'lucide-react'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import Image from 'next/image'
 import { useToast } from "@/components/ui/use-toast"
@@ -49,7 +49,7 @@ export function Benachrichtigungen() {
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null)
   const [comments, setComments] = useState<TicketComment[]>([])
   const [newComment, setNewComment] = useState('')
-  const [enlargedImage, setEnlargedImage] = useState<string | null>(null)
+  //const [enlargedImage, setEnlargedImage] = useState<string | null>(null) //Removed
   const [isAddingComment, setIsAddingComment] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedImages, setSelectedImages] = useState<string[]>([])
@@ -62,7 +62,7 @@ export function Benachrichtigungen() {
 
   useEffect(() => {
     fetchTickets()
-  }, [])
+  }, [fetchTickets]); //Added fetchTickets to dependencies
 
   const fetchTickets = async () => {
     try {

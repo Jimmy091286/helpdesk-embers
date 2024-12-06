@@ -3,10 +3,20 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation'; // Verwende next/navigation statt next/router
 import { supabase } from '@/lib/supabase';
+import Image from 'next/image';
+
+interface ErrorData {
+  id: string;
+  title: string;
+  description: string;
+  solution: string;
+  photos: string[];
+  created_at: string;
+}
 
 const ErrorDetail = () => {
   const router = useRouter();
-  const [error, setError] = useState<any>(null);
+  const [error, setError] = useState<ErrorData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -50,7 +60,14 @@ const ErrorDetail = () => {
         <div className="mt-4">
           <h2>Fotos</h2>
           {error.photos.map((photo, index) => (
-            <img key={index} src={photo} alt={`Fehlerfoto ${index + 1}`} className="max-w-full" />
+            <Image
+              key={index}
+              src={photo}
+              alt={`Fehlerfoto ${index + 1}`}
+              width={800}
+              height={600}
+              className="max-w-full"
+            />
           ))}
         </div>
       )}
