@@ -49,7 +49,6 @@ export function Benachrichtigungen() {
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null)
   const [comments, setComments] = useState<TicketComment[]>([])
   const [newComment, setNewComment] = useState('')
-  //const [enlargedImage, setEnlargedImage] = useState<string | null>(null) //Removed
   const [isAddingComment, setIsAddingComment] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedImages, setSelectedImages] = useState<string[]>([])
@@ -62,7 +61,7 @@ export function Benachrichtigungen() {
 
   useEffect(() => {
     fetchTickets()
-  }, [fetchTickets]); //Added fetchTickets to dependencies
+  }, [fetchTickets]);
 
   const fetchTickets = async () => {
     try {
@@ -248,10 +247,8 @@ export function Benachrichtigungen() {
   const getTicketImages = (ticket: SupportTicket): string[] => {
     const images: string[] = [];
     
-    // Helper function to validate and clean URLs
     const cleanUrl = (url: string) => {
       if (!url || typeof url !== 'string') return null;
-      // Remove any duplicate slashes except after protocol
       return url.replace(/(https?:\/\/)|(\/)+/g, "$1$2").trim();
     };
     
@@ -284,194 +281,196 @@ export function Benachrichtigungen() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">
+      <header className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">
           Support-Tickets {unreadCount > 0 && <Badge variant="destructive">{unreadCount}</Badge>}
-        </h2>
+        </h1>
         <Button
           variant="outline"
           onClick={() => router.push('/dashboard')}
         >
           Dashboard
         </Button>
-      </div>
-      {tickets.length === 0 ? (
-        <p>Keine Benachrichtigungen vorhanden.</p>
-      ) : (
-        <ul className="space-y-3">
-          {tickets.map((ticket) => (
-            <li key={ticket.id}>
-              <Dialog open={isDialogOpen && selectedTicket?.id === ticket.id} onOpenChange={(open) => {
-                if (!open) {
-                  setIsDialogOpen(false)
-                  setSelectedTicket(null)
-                }
-              }}>
-                <DialogTrigger asChild>
-                  <Card className="transition-all duration-300 hover:shadow-md">
-                    <CardContent className="p-0">
-                      <Button
-                        variant="ghost"
-                        className={`w-full justify-start text-left p-4 rounded-lg transition-colors duration-300 ${
-                          ticket.is_read ? 'hover:bg-gray-100' : 'bg-blue-50 hover:bg-blue-100'
-                        }`}
-                        onClick={() => handleTicketClick(ticket)}
-                      >
-                        <div className="flex items-center space-x-3 w-full">
-                          {ticket.status === 'inProgress' && <Clock className="h-5 w-5 text-blue-500 flex-shrink-0" />}
-                          {ticket.status === 'completed' && <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />}
-                          {ticket.status === 'new' && <div className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0" />}
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium truncate">{ticket.name}</div>
-                            <div className="text-sm text-muted-foreground truncate">{ticket.error_description}</div>
-                          </div>
-                          <span className="text-xs text-muted-foreground whitespace-nowrap">
-                            {new Date(ticket.created_at).toLocaleString()}
-                          </span>
-                        </div>
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[700px] max-h-[80vh]" onInteractOutside={(e) => e.preventDefault()}>
-                  <div ref={dialogRef}>
-                    {selectedTicket && selectedTicket.id === ticket.id && (
-                      <>
-                        <DialogHeader>
-                          <DialogTitle className="text-2xl">Support-Ticket #{selectedTicket.id}</DialogTitle>
-                          <DialogDescription>
-                            Erstellt am: {new Date(selectedTicket.created_at).toLocaleString()}
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid grid-cols-2 gap-4 my-4">
-                          <div>
-                            <strong className="block text-sm font-medium text-gray-700">Name:</strong>
-                            <span>{selectedTicket.name}</span>
-                          </div>
-                          <div>
-                            <strong className="block text-sm font-medium text-gray-700">Email:</strong>
-                            <span className="break-all">{selectedTicket.email}</span>
-                          </div>
-                          <div>
-                            <strong className="block text-sm font-medium text-gray-700">Telefon:</strong>
-                            <span className="break-all">{selectedTicket.phone}</span>
-                          </div>
-                          <div>
-                            <strong className="block text-sm font-medium text-gray-700">Status:</strong>
-                            <Badge variant={
-                              selectedTicket.status === 'new' ? "default" :
-                              selectedTicket.status === 'inProgress' ? "secondary" :
-                              "success"
-                            }>
-                              {selectedTicket.status === 'new' ? 'Neu' :
-                               selectedTicket.status === 'inProgress' ? 'In Bearbeitung' :
-                               'Erledigt'}
-                            </Badge>
-                          </div>
-                        </div>
-                        <ScrollArea className="h-[300px] w-full rounded-md border p-4">
-                          <div className="space-y-4">
-                            <div>
-                              <strong className="block text-sm font-medium text-gray-700">Beschreibung:</strong>
-                              <p className="mt-1 whitespace-pre-wrap break-words">{selectedTicket?.error_description}</p>
+      </header>
+      <main>
+        {tickets.length === 0 ? (
+          <p>Keine Benachrichtigungen vorhanden.</p>
+        ) : (
+          <ul className="space-y-3" role="list">
+            {tickets.map((ticket) => (
+              <li key={ticket.id}>
+                <Dialog open={isDialogOpen && selectedTicket?.id === ticket.id} onOpenChange={(open) => {
+                  if (!open) {
+                    setIsDialogOpen(false)
+                    setSelectedTicket(null)
+                  }
+                }}>
+                  <DialogTrigger asChild>
+                    <Card className="transition-all duration-300 hover:shadow-md">
+                      <CardContent className="p-0">
+                        <Button
+                          variant="ghost"
+                          className={`w-full justify-start text-left p-4 rounded-lg transition-colors duration-300 ${
+                            ticket.is_read ? 'hover:bg-gray-100' : 'bg-blue-50 hover:bg-blue-100'
+                          }`}
+                          onClick={() => handleTicketClick(ticket)}
+                        >
+                          <div className="flex items-center space-x-3 w-full">
+                            {ticket.status === 'inProgress' && <Clock className="h-5 w-5 text-blue-500 flex-shrink-0" aria-label="In Bearbeitung" />}
+                            {ticket.status === 'completed' && <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" aria-label="Erledigt" />}
+                            {ticket.status === 'new' && <div className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0" aria-label="Neu" />}
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium truncate">{ticket.name}</div>
+                              <div className="text-sm text-muted-foreground truncate">{ticket.error_description}</div>
                             </div>
-                            {selectedTicket && (
+                            <time className="text-xs text-muted-foreground whitespace-nowrap">
+                              {new Date(ticket.created_at).toLocaleString()}
+                            </time>
+                          </div>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[700px] max-h-[80vh]" onInteractOutside={(e) => e.preventDefault()}>
+                    <div ref={dialogRef}>
+                      {selectedTicket && selectedTicket.id === ticket.id && (
+                        <>
+                          <DialogHeader>
+                            <DialogTitle className="text-2xl">Support-Ticket #{selectedTicket.id}</DialogTitle>
+                            <DialogDescription>
+                              Erstellt am: {new Date(selectedTicket.created_at).toLocaleString()}
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="grid grid-cols-2 gap-4 my-4">
+                            <div>
+                              <strong className="block text-sm font-medium text-gray-700">Name:</strong>
+                              <span>{selectedTicket.name}</span>
+                            </div>
+                            <div>
+                              <strong className="block text-sm font-medium text-gray-700">Email:</strong>
+                              <span className="break-all">{selectedTicket.email}</span>
+                            </div>
+                            <div>
+                              <strong className="block text-sm font-medium text-gray-700">Telefon:</strong>
+                              <span className="break-all">{selectedTicket.phone}</span>
+                            </div>
+                            <div>
+                              <strong className="block text-sm font-medium text-gray-700">Status:</strong>
+                              <Badge variant={
+                                selectedTicket.status === 'new' ? "default" :
+                                selectedTicket.status === 'inProgress' ? "secondary" :
+                                "success"
+                              }>
+                                {selectedTicket.status === 'new' ? 'Neu' :
+                                 selectedTicket.status === 'inProgress' ? 'In Bearbeitung' :
+                                 'Erledigt'}
+                              </Badge>
+                            </div>
+                          </div>
+                          <ScrollArea className="h-[300px] w-full rounded-md border p-4">
+                            <div className="space-y-4">
                               <div>
-                                <strong className="block text-sm font-medium text-gray-700">Bilder:</strong>
-                                {getTicketImages(selectedTicket).length > 0 ? (
-                                  <div className="mt-2 flex flex-wrap gap-2">
-                                    {getTicketImages(selectedTicket).map((image, index) => (
-                                      <div 
-                                        key={index} 
-                                        className="relative w-32 h-32 cursor-pointer group" 
-                                        onClick={() => setSelectedImages(getTicketImages(selectedTicket))}
-                                      >
-                                        <Image 
-                                          src={image} 
-                                          alt={`Bild ${index + 1}`} 
-                                          layout="fill" 
-                                          objectFit="cover" 
-                                          className="rounded-md"
-                                          onError={() => {
-                                            const shortUrl = image.split('/').slice(-2).join('/');
-                                            console.error(`Fehler beim Laden des Bildes: ${shortUrl}`);
-                                            toast({
-                                              title: "Fehler beim Laden des Bildes",
-                                              description: `Bild ${index + 1} (${shortUrl}) konnte nicht geladen werden. Bitte überprüfen Sie die URL.`,
-                                              variant: "destructive",
-                                            });
-                                          }}
-                                        />
-                                        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity">
-                                          <Maximize2 className="text-white" />
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <div className="mt-2 p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-md flex items-center">
-                                    <AlertCircle className="mr-2" />
-                                    <span>Keine Bilder gefunden oder Fehler beim Laden der Bilder.</span>
-                                  </div>
-                                )}
+                                <strong className="block text-sm font-medium text-gray-700">Beschreibung:</strong>
+                                <p className="mt-1 whitespace-pre-wrap break-words">{selectedTicket?.error_description}</p>
                               </div>
-                            )}
-                            <div>
-                              <strong className="block text-sm font-medium text-gray-700">Kommentare:</strong>
-                              {comments.map((comment) => (
-                                <div key={comment.id} className="bg-gray-50 rounded p-2 mt-2">
-                                  <p className="text-sm">
-                                    <strong>{comment.author}:</strong> <span className="whitespace-pre-wrap break-words">{comment.text}</span>
-                                  </p>
-                                  <span className="text-xs text-gray-500">
-                                    {new Date(comment.created_at).toLocaleString()}
-                                  </span>
+                              {selectedTicket && (
+                                <div>
+                                  <strong className="block text-sm font-medium text-gray-700">Bilder:</strong>
+                                  {getTicketImages(selectedTicket).length > 0 ? (
+                                    <div className="mt-2 flex flex-wrap gap-2">
+                                      {getTicketImages(selectedTicket).map((image, index) => (
+                                        <div 
+                                          key={index} 
+                                          className="relative w-32 h-32 cursor-pointer group" 
+                                          onClick={() => setSelectedImages(getTicketImages(selectedTicket))}
+                                        >
+                                          <Image 
+                                            src={image} 
+                                            alt={`Bild ${index + 1}`} 
+                                            layout="fill" 
+                                            objectFit="cover" 
+                                            className="rounded-md"
+                                            onError={() => {
+                                              const shortUrl = image.split('/').slice(-2).join('/');
+                                              console.error(`Fehler beim Laden des Bildes: ${shortUrl}`);
+                                              toast({
+                                                title: "Fehler beim Laden des Bildes",
+                                                description: `Bild ${index + 1} (${shortUrl}) konnte nicht geladen werden. Bitte überprüfen Sie die URL.`,
+                                                variant: "destructive",
+                                              });
+                                            }}
+                                          />
+                                          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Maximize2 className="text-white" />
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <div className="mt-2 p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-md flex items-center">
+                                      <AlertCircle className="mr-2" />
+                                      <span>Keine Bilder gefunden oder Fehler beim Laden der Bilder.</span>
+                                    </div>
+                                  )}
                                 </div>
-                              ))}
+                              )}
+                              <div>
+                                <strong className="block text-sm font-medium text-gray-700">Kommentare:</strong>
+                                {comments.map((comment) => (
+                                  <div key={comment.id} className="bg-gray-50 rounded p-2 mt-2">
+                                    <p className="text-sm">
+                                      <strong>{comment.author}:</strong> <span className="whitespace-pre-wrap break-words">{comment.text}</span>
+                                    </p>
+                                    <span className="text-xs text-gray-500">
+                                      {new Date(comment.created_at).toLocaleString()}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        </ScrollArea>
-                        <Textarea
-                          placeholder="Kommentar hinzufügen..."
-                          value={newComment}
-                          onChange={(e) => setNewComment(e.target.value)}
-                          className="mt-4"
-                        />
-                        <DialogFooter className="mt-4 flex flex-wrap justify-end gap-2">
-                          <Button onClick={() => openWhatsApp(selectedTicket.phone)} variant="outline" size="sm">
-                            <Phone className="mr-2 h-4 w-4" />
-                            WhatsApp
-                          </Button>
-                          <Button onClick={handleAddComment} variant="outline" size="sm" disabled={isAddingComment}>
-                            {isAddingComment ? (
-                              <span>Wird hinzugefügt...</span>
-                            ) : (
-                              <>
-                                <MessageCircle className="mr-2 h-4 w-4" />
-                                Kommentar
-                              </>
-                            )}
-                          </Button>
-                          {selectedTicket.status === 'new' && (
-                            <Button onClick={handleTakeOver} variant="secondary" size="sm">Übernehmen</Button>
-                          )}
-                          {selectedTicket.status !== 'completed' && (
-                            <Button onClick={handleComplete} variant="default" size="sm">
-                              <CheckCircle className="mr-2 h-4 w-4" />
-                              Erledigt
+                          </ScrollArea>
+                          <Textarea
+                            placeholder="Kommentar hinzufügen..."
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            className="mt-4"
+                          />
+                          <DialogFooter className="mt-4 flex flex-wrap justify-end gap-2">
+                            <Button onClick={() => openWhatsApp(selectedTicket.phone)} variant="outline" size="sm">
+                              <Phone className="mr-2 h-4 w-4" />
+                              WhatsApp
                             </Button>
-                          )}
-                          <Button variant="destructive" size="sm" onClick={() => handleDeleteTicket(selectedTicket.id)}>Löschen</Button>
-                        </DialogFooter>
-                      </>
-                    )}
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </li>
-          ))}
-        </ul>
-      )}
+                            <Button onClick={handleAddComment} variant="outline" size="sm" disabled={isAddingComment}>
+                              {isAddingComment ? (
+                                <span>Wird hinzugefügt...</span>
+                              ) : (
+                                <>
+                                  <MessageCircle className="mr-2 h-4 w-4" />
+                                  Kommentar
+                                </>
+                              )}
+                            </Button>
+                            {selectedTicket.status === 'new' && (
+                              <Button onClick={handleTakeOver} variant="secondary" size="sm">Übernehmen</Button>
+                            )}
+                            {selectedTicket.status !== 'completed' && (
+                              <Button onClick={handleComplete} variant="default" size="sm">
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                Erledigt
+                              </Button>
+                            )}
+                            <Button variant="destructive" size="sm" onClick={() => handleDeleteTicket(selectedTicket.id)}>Löschen</Button>
+                          </DialogFooter>
+                        </>
+                      )}
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </li>
+            ))}
+          </ul>
+        )}
+      </main>
       
       {selectedImages.length > 0 && (
         <Dialog open={selectedImages.length > 0} onOpenChange={() => setSelectedImages([])}>
@@ -491,7 +490,7 @@ export function Benachrichtigungen() {
             {selectedImages.length > 1 && (
               <div className="flex gap-2 mt-4 overflow-x-auto p-2">
                 {selectedImages.map((image, index) => (
-                  <div
+                  <button
                     key={index}
                     className={`relative w-20 h-20 cursor-pointer rounded-md overflow-hidden ${
                       image === selectedImages[0] ? 'ring-2 ring-primary' : ''
@@ -509,7 +508,7 @@ export function Benachrichtigungen() {
                       layout="fill"
                       objectFit="cover"
                     />
-                  </div>
+                  </button>
                 ))}
               </div>
             )}

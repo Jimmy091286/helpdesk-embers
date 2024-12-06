@@ -6,8 +6,8 @@ import { Metadata } from 'next'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Helpdesk Embers - Helpdesk-System',
-  description: 'Ein modernes Helpdesk-System',
+  title: 'Helpdesk Embers - Modernes Helpdesk-System',
+  description: 'Ein modernes Helpdesk-System für effiziente Kundenbetreuung',
 }
 
 export default function RootLayout({
