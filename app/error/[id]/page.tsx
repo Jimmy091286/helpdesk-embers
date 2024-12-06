@@ -62,3 +62,4 @@ const ErrorDetail = () => {
 };
 
 export default ErrorDetail;
+

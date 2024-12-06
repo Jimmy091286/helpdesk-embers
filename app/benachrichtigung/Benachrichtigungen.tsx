@@ -31,7 +31,7 @@ interface SupportTicket {
   image_url?: string
   images?: string[]
   is_read: boolean
-  status: 'new' | 'inProgress' | 'completed'
+  status: 'new' | 'inProgress'| 'completed'
   assigned_to?: string
   created_at: string
 }
