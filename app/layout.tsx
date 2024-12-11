@@ -1,13 +1,14 @@
+import './globals.css'
 import { Inter } from 'next/font/google'
-import { Toaster } from '@/components/ui/toaster'
-import { UserProvider } from '@/contexts/UserContext'
-import { Metadata } from 'next'
+import { UserProvider } from '../contexts/UserContext'
+import Navigation from '@/components/Navigation'
+import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata: Metadata = {
-  title: 'Helpdesk Embers - Modernes Helpdesk-System',
-  description: 'Ein modernes Helpdesk-System für effiziente Kundenbetreuung',
+export const metadata = {
+  title: 'Error Management System',
+  description: 'A system to manage and search for error messages',
 }
 
 export default function RootLayout({
@@ -16,12 +17,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="de">
+    <html lang="en">
       <body className={inter.className}>
         <UserProvider>
-          <main className="min-h-screen">
+          <div className="container mx-auto p-4">
+            <Navigation />
             {children}
-          </main>
+          </div>
           <Toaster />
         </UserProvider>
       </body>

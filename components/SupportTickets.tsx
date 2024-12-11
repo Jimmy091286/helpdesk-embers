@@ -19,6 +19,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import Image from 'next/image'
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from '@/lib/supabase'
+
 import { Card, CardContent } from "@/components/ui/card"
 
 interface SupportTicket {
@@ -42,7 +43,7 @@ interface TicketComment {
   created_at: string
 }
 
-export default function SupportTickets() {
+export function SupportTickets() {
   const [tickets, setTickets] = useState<SupportTicket[]>([])
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null)
   const [comments, setComments] = useState<TicketComment[]>([])
@@ -198,42 +199,29 @@ export default function SupportTickets() {
   }
 
   const handleDeleteTicket = async (id: number) => {
-    if (!confirm('Sind Sie sicher, dass Sie dieses Ticket löschen möchten?')) {
-      return;
-    }
-
     try {
-      // Delete comments first
-      const { error: commentsError } = await supabase
-        .from('ticket_comments')
-        .delete()
-        .eq('ticket_id', id);
-
-      if (commentsError) throw commentsError;
-
-      // Then delete the ticket
-      const { error: ticketError } = await supabase
+      const { error } = await supabase
         .from('support_tickets')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+      
+      if (error) throw error
 
-      if (ticketError) throw ticketError;
-
-      setTickets(tickets.filter(t => t.id !== id));
-      setIsDialogOpen(false);
-      setSelectedTicket(null);
+      setTickets(tickets.filter(t => t.id !== id))
+      setIsDialogOpen(false)
+      setSelectedTicket(null)
       toast({
         title: "Ticket gelöscht",
-        description: "Das Support-Ticket und alle zugehörigen Kommentare wurden erfolgreich gelöscht.",
-        variant: "default",
-      });
+        description: "Das Support-Ticket wurde erfolgreich gelöscht.",
+        variant: "destructive",
+      })
     } catch (error) {
-      console.error('Error deleting ticket:', error);
+      console.error('Error deleting ticket:', error)
       toast({
         title: "Fehler beim Löschen",
         description: "Das Ticket konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
         variant: "destructive",
-      });
+      })
     }
   }
 
