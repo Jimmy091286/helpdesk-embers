@@ -7,8 +7,8 @@ import { Toaster } from "@/components/ui/toaster"
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'Error Management System',
-  description: 'A system to manage and search for error messages',
+  title: 'Fehlerverwaltungssystem',
+  description: 'Ein System zur Verwaltung und Suche von Fehlermeldungen',
 }
 
 export default function RootLayout({
@@ -17,12 +17,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="de">
       <body className={inter.className}>
         <UserProvider>
           <div className="container mx-auto p-4">
             <Navigation />
-            {children}
+            <main>{children}</main>
           </div>
           <Toaster />
         </UserProvider>
