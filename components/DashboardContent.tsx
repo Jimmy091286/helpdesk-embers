@@ -280,7 +280,7 @@ export default function DashboardContent() {
             {categories.map((category) => (
               <div key={category.id} className="bg-white shadow-sm rounded-lg p-4 transition-all duration-200 hover:shadow-md">
                 <div className="flex items-center justify-between mb-2">
-                  <Link href={`/category-by-id/${category.id}`} className="flex-grow">
+                  <Link href={`/category/${category.id}`} className="flex-grow">
                     <h3 className="text-lg font-semibold hover:text-blue-600 transition-colors duration-200">
                       {category.name}
                     </h3>

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -52,6 +52,7 @@ export function Benachrichtigungen() {
   const [isAddingComment, setIsAddingComment] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedImages, setSelectedImages] = useState<string[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const { user } = useUser()
   const { toast } = useToast()
   const dialogRef = useRef<HTMLDivElement>(null)
@@ -59,11 +60,8 @@ export function Benachrichtigungen() {
 
   const unreadCount = useMemo(() => tickets.filter(ticket => !ticket.is_read).length, [tickets])
 
-  useEffect(() => {
-    fetchTickets()
-  }, [fetchTickets]);
-
-  const fetchTickets = async () => {
+  const fetchTickets = useCallback(async () => {
+    setIsLoading(true)
     try {
       const { data, error } = await supabase
         .from('support_tickets')
@@ -80,8 +78,14 @@ export function Benachrichtigungen() {
         description: 'Die Tickets konnten nicht abgerufen werden. Bitte versuchen Sie es erneut.',
         variant: 'destructive',
       })
+    } finally {
+      setIsLoading(false)
     }
-  }
+  }, [toast])
+
+  useEffect(() => {
+    fetchTickets()
+  }, [fetchTickets])
 
   const fetchComments = async (ticketId: number) => {
     try {
@@ -105,11 +109,20 @@ export function Benachrichtigungen() {
   }
 
   const handleTicketClick = async (ticket: SupportTicket) => {
-    setSelectedTicket(ticket)
-    setIsDialogOpen(true)
-    await fetchComments(ticket.id)
-    if (!ticket.is_read) {
-      await updateTicket(ticket.id, { is_read: true })
+    try {
+      setSelectedTicket(ticket)
+      setIsDialogOpen(true)
+      await fetchComments(ticket.id)
+      if (!ticket.is_read) {
+        await updateTicket(ticket.id, { is_read: true })
+      }
+    } catch (error) {
+      console.error('Error handling ticket click:', error)
+      toast({
+        title: 'Fehler',
+        description: 'Es gab ein Problem beim Öffnen des Tickets. Bitte versuchen Sie es erneut.',
+        variant: 'destructive',
+      })
     }
   }
 
@@ -293,7 +306,9 @@ export function Benachrichtigungen() {
         </Button>
       </header>
       <main>
-        {tickets.length === 0 ? (
+        {isLoading ? (
+          <p>Lade Tickets...</p>
+        ) : tickets.length === 0 ? (
           <p>Keine Benachrichtigungen vorhanden.</p>
         ) : (
           <ul className="space-y-3" role="list">
@@ -518,4 +533,6 @@ export function Benachrichtigungen() {
     </div>
   )
 }
+
+export default Benachrichtigungen;
 
