@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef, useMemo, Suspense, ErrorBoundary } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -21,7 +21,6 @@ import { useToast } from "@/components/ui/use-toast"
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent } from "@/components/ui/card"
 
-// Interfaces bleiben gleich
 interface SupportTicket {
   id: number
   name: string
@@ -43,32 +42,7 @@ interface TicketComment {
   created_at: string
 }
 
-// Error Boundary Komponente
-function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
-  return (
-    <div role="alert" className="p-4 border border-red-500 rounded-lg">
-      <h2 className="text-lg font-semibold text-red-600">Etwas ist schiefgelaufen</h2>
-      <p className="text-sm text-gray-600">{error.message}</p>
-      <Button onClick={resetErrorBoundary} className="mt-4">Erneut versuchen</Button>
-    </div>
-  )
-}
-
-// Loading Komponente
-function LoadingState() {
-  return (
-    <div className="space-y-4 animate-pulse">
-      <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-      <div className="space-y-3">
-        {[1, 2, 3].map((n) => (
-          <div key={n} className="h-24 bg-gray-200 rounded"></div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-export function SupportTickets() {
+export default function SupportTickets() {
   const [tickets, setTickets] = useState<SupportTicket[]>([])
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null)
   const [comments, setComments] = useState<TicketComment[]>([])
@@ -76,7 +50,6 @@ export function SupportTickets() {
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null)
   const [isAddingComment, setIsAddingComment] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
   const { user } = useUser()
   const { toast } = useToast()
   const dialogRef = useRef<HTMLDivElement>(null)
@@ -89,7 +62,6 @@ export function SupportTickets() {
 
   const fetchTickets = async () => {
     try {
-      setIsLoading(true)
       const { data, error } = await supabase
         .from('support_tickets')
         .select('*')
@@ -105,27 +77,192 @@ export function SupportTickets() {
         description: 'Die Tickets konnten nicht abgerufen werden. Bitte versuchen Sie es erneut.',
         variant: 'destructive',
       })
-    } finally {
-      setIsLoading(false)
     }
   }
 
-  // Rest der Funktionen bleiben gleich...
-  // (fetchComments, handleTicketClick, updateTicket, handleTakeOver, handleComplete, addComment, handleAddComment, handleDeleteTicket, openWhatsApp)
+  const fetchComments = async (ticketId: number) => {
+    try {
+      const { data, error } = await supabase
+        .from('ticket_comments')
+        .select('*')
+        .eq('ticket_id', ticketId)
+        .order('created_at', { ascending: true })
+      
+      if (error) throw error
 
-  if (isLoading) {
-    return <LoadingState />
+      setComments(data || [])
+    } catch (error) {
+      console.error('Error fetching comments:', error)
+      toast({
+        title: 'Fehler beim Abrufen der Kommentare',
+        description: 'Die Kommentare konnten nicht abgerufen werden. Bitte versuchen Sie es erneut.',
+        variant: 'destructive',
+      })
+    }
   }
 
+  const handleTicketClick = async (ticket: SupportTicket) => {
+    setSelectedTicket(ticket)
+    setIsDialogOpen(true)
+    await fetchComments(ticket.id)
+    if (!ticket.is_read) {
+      await updateTicket(ticket.id, { is_read: true })
+    }
+  }
+
+  const updateTicket = async (id: number, updates: Partial<SupportTicket>) => {
+    try {
+      const { error } = await supabase
+        .from('support_tickets')
+        .update(updates)
+        .eq('id', id)
+      
+      if (error) throw error
+
+      setTickets(tickets.map(t => t.id === id ? { ...t, ...updates } : t))
+      if (selectedTicket && selectedTicket.id === id) {
+        setSelectedTicket({ ...selectedTicket, ...updates })
+      }
+    } catch (error) {
+      console.error('Error updating ticket:', error)
+      toast({
+        title: 'Fehler beim Aktualisieren des Tickets',
+        description: 'Das Ticket konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleTakeOver = async () => {
+    if (selectedTicket && user) {
+      await updateTicket(selectedTicket.id, {
+        status: 'inProgress',
+        assigned_to: user.email,
+      })
+      await addComment(`Ticket übernommen von ${user.email}`)
+      setIsDialogOpen(false)
+      setSelectedTicket(null)
+      toast({
+        title: "Ticket übernommen",
+        description: `Sie haben das Ticket #${selectedTicket.id} übernommen.`,
+      })
+    }
+  }
+
+  const handleComplete = async () => {
+    if (selectedTicket && user) {
+      await updateTicket(selectedTicket.id, { status: 'completed' })
+      await addComment(`Ticket erledigt von ${user.email}`)
+      setIsDialogOpen(false)
+      setSelectedTicket(null)
+      toast({
+        title: "Ticket erledigt",
+        description: `Ticket #${selectedTicket.id} wurde als erledigt markiert.`,
+      })
+    }
+  }
+
+  const addComment = async (text: string) => {
+    if (selectedTicket && user) {
+      setIsAddingComment(true)
+      try {
+        const { error } = await supabase
+          .from('ticket_comments')
+          .insert({ ticket_id: selectedTicket.id, text, author: user.email })
+        
+        if (error) throw error
+
+        await fetchComments(selectedTicket.id)
+        setNewComment('')
+        toast({
+          title: "Kommentar hinzugefügt",
+          description: "Ihr Kommentar wurde erfolgreich hinzugefügt.",
+        })
+      } catch (error) {
+        console.error('Error adding comment:', error)
+        toast({
+          title: 'Fehler beim Hinzufügen des Kommentars',
+          description: 'Der Kommentar konnte nicht hinzugefügt werden. Bitte versuchen Sie es erneut.',
+          variant: 'destructive',
+        })
+      } finally {
+        setIsAddingComment(false)
+      }
+    }
+  }
+
+  const handleAddComment = () => {
+    if (newComment.trim() && selectedTicket) {
+      addComment(newComment.trim())
+    }
+  }
+
+  const handleDeleteTicket = async (id: number) => {
+    if (!confirm('Sind Sie sicher, dass Sie dieses Ticket löschen möchten?')) {
+      return;
+    }
+
+    try {
+      // Delete comments first
+      const { error: commentsError } = await supabase
+        .from('ticket_comments')
+        .delete()
+        .eq('ticket_id', id);
+
+      if (commentsError) throw commentsError;
+
+      // Then delete the ticket
+      const { error: ticketError } = await supabase
+        .from('support_tickets')
+        .delete()
+        .eq('id', id);
+
+      if (ticketError) throw ticketError;
+
+      setTickets(tickets.filter(t => t.id !== id));
+      setIsDialogOpen(false);
+      setSelectedTicket(null);
+      toast({
+        title: "Ticket gelöscht",
+        description: "Das Support-Ticket und alle zugehörigen Kommentare wurden erfolgreich gelöscht.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error deleting ticket:', error);
+      toast({
+        title: "Fehler beim Löschen",
+        description: "Das Ticket konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
+        variant: "destructive",
+      });
+    }
+  }
+
+  const openWhatsApp = (phone: string) => {
+    const whatsappUrl = `https://web.whatsapp.com/send?phone=${phone.replace(/\D/g, '')}`
+    window.open(whatsappUrl, '_blank')
+  }
+
+  useEffect(() => {
+    if (dialogRef.current) {
+      const dialog = dialogRef.current.closest('[role="dialog"]')
+      if (dialog) {
+        const closeButton = dialog.querySelector('[data-radix-collection-item]')
+        if (closeButton) {
+          (closeButton as HTMLElement).style.display = 'none'
+        }
+      }
+    }
+  }, [selectedTicket])
+
   return (
-    <main className="space-y-4">
-      <h1 className="text-2xl font-bold">
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold">
         Support-Tickets {unreadCount > 0 && <Badge variant="destructive">{unreadCount}</Badge>}
-      </h1>
+      </h2>
       {tickets.length === 0 ? (
         <p>Keine Support-Tickets vorhanden.</p>
       ) : (
-        <ul className="space-y-3" role="list">
+        <ul className="space-y-3">
           {tickets.map((ticket) => (
             <li key={ticket.id}>
               <Dialog open={isDialogOpen && selectedTicket?.id === ticket.id} onOpenChange={(open) => {
@@ -145,22 +282,16 @@ export function SupportTickets() {
                         onClick={() => handleTicketClick(ticket)}
                       >
                         <div className="flex items-center space-x-3 w-full">
-                          {ticket.status === 'inProgress' && (
-                            <Clock className="h-5 w-5 text-blue-500 flex-shrink-0" aria-label="In Bearbeitung" />
-                          )}
-                          {ticket.status === 'completed' && (
-                            <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" aria-label="Erledigt" />
-                          )}
-                          {ticket.status === 'new' && (
-                            <div className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0" aria-label="Neu" />
-                          )}
+                          {ticket.status === 'inProgress' && <Clock className="h-5 w-5 text-blue-500 flex-shrink-0" />}
+                          {ticket.status === 'completed' && <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />}
+                          {ticket.status === 'new' && <div className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0" />}
                           <div className="flex-1 min-w-0">
                             <div className="font-medium truncate">{ticket.name}</div>
                             <div className="text-sm text-muted-foreground truncate">{ticket.error_description}</div>
                           </div>
-                          <time className="text-xs text-muted-foreground whitespace-nowrap">
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">
                             {new Date(ticket.created_at).toLocaleString()}
-                          </time>
+                          </span>
                         </div>
                       </Button>
                     </CardContent>
@@ -215,9 +346,9 @@ export function SupportTickets() {
                                   <Image 
                                     src={selectedTicket.image_url} 
                                     alt="Fehlerbild" 
-                                    width={128}
-                                    height={128}
-                                    className="rounded-md object-cover"
+                                    layout="fill" 
+                                    objectFit="cover" 
+                                    className="rounded-md"
                                   />
                                   <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity">
                                     <Maximize2 className="text-white" />
@@ -232,9 +363,9 @@ export function SupportTickets() {
                                   <p className="text-sm">
                                     <strong>{comment.author}:</strong> <span className="whitespace-pre-wrap break-words">{comment.text}</span>
                                   </p>
-                                  <time className="text-xs text-gray-500">
+                                  <span className="text-xs text-gray-500">
                                     {new Date(comment.created_at).toLocaleString()}
-                                  </time>
+                                  </span>
                                 </div>
                               ))}
                             </div>
@@ -292,8 +423,8 @@ export function SupportTickets() {
               <Image 
                 src={enlargedImage} 
                 alt="Vergrößertes Fehlerbild" 
-                fill
-                className="object-contain"
+                layout="fill" 
+                objectFit="contain" 
               />
             </div>
           </DialogContent>

@@ -17,9 +17,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="de">
-      <head>
-        <title>Helpdesk Embers - Modernes Helpdesk-System</title>
-      </head>
       <body className={inter.className}>
         <UserProvider>
           <main className="min-h-screen">
