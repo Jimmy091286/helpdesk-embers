@@ -243,10 +243,10 @@ export function SupportTickets() {
   }, [selectedTicket])
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold">
+    <main className="space-y-4">
+      <h1 className="text-2xl font-bold">
         Support-Tickets {unreadCount > 0 && <Badge variant="destructive">{unreadCount}</Badge>}
-      </h2>
+      </h1>
       {tickets.length === 0 ? (
         <p>Keine Support-Tickets vorhanden.</p>
       ) : (
@@ -268,6 +268,11 @@ export function SupportTickets() {
                           ticket.is_read ? 'hover:bg-gray-100' : 'bg-blue-50 hover:bg-blue-100'
                         }`}
                         onClick={() => handleTicketClick(ticket)}
+                        aria-label={`Support-Ticket ${ticket.id}: ${ticket.name}, Status: ${
+                          ticket.status === 'new' ? 'Neu' :
+                          ticket.status === 'inProgress' ? 'In Bearbeitung' :
+                          'Erledigt'
+                        }`}
                       >
                         <div className="flex items-center space-x-3 w-full">
                           {ticket.status === 'inProgress' && <Clock className="h-5 w-5 text-blue-500 flex-shrink-0" />}
@@ -418,7 +423,7 @@ export function SupportTickets() {
           </DialogContent>
         </Dialog>
       )}
-    </div>
+    </main>
   )
 }
 
