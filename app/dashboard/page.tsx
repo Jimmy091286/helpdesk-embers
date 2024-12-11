@@ -1,22 +1,33 @@
-import { Suspense } from 'react'
-import DashboardContent from '@/components/DashboardContent'
-import { Skeleton } from "@/components/ui/skeleton"
+import './globals.css'
+import { Inter } from 'next/font/google'
+import { UserProvider } from '../contexts/UserContext'
+import Navigation from '@/components/Navigation'
+import { Toaster } from "@/components/ui/toaster"
 
-export default function Dashboard() {
+const inter = Inter({ subsets: ['latin'] })
+
+export const metadata = {
+  title: 'Fehlerverwaltungssystem',
+  description: 'Ein System zur Verwaltung und Suche von Fehlermeldungen',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <Suspense fallback={<DashboardSkeleton />}>
-      <DashboardContent />
-    </Suspense>
+    <html lang="de">
+      <body className={inter.className}>
+        <UserProvider>
+          <div className="container mx-auto p-4">
+            <Navigation />
+            {children}
+          </div>
+          <Toaster />
+        </UserProvider>
+      </body>
+    </html>
   )
 }
 
-function DashboardSkeleton() {
-  return (
-    <div className="space-y-4">
-      <Skeleton className="h-8 w-[250px]" />
-      <Skeleton className="h-[200px] w-full" />
-      <Skeleton className="h-[200px] w-full" />
-      <Skeleton className="h-[200px] w-full" />
-    </div>
-  )
-}
