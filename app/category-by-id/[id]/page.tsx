@@ -49,7 +49,6 @@ export function Benachrichtigungen() {
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null)
   const [comments, setComments] = useState<TicketComment[]>([])
   const [newComment, setNewComment] = useState('')
-  //const [enlargedImage, setEnlargedImage] = useState<string | null>(null) //Removed
   const [isAddingComment, setIsAddingComment] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedImages, setSelectedImages] = useState<string[]>([])
@@ -62,7 +61,7 @@ export function Benachrichtigungen() {
 
   useEffect(() => {
     fetchTickets()
-  }, [fetchTickets]); //Added fetchTickets to dependencies
+  }, [fetchTickets]);
 
   const fetchTickets = async () => {
     try {
@@ -248,10 +247,8 @@ export function Benachrichtigungen() {
   const getTicketImages = (ticket: SupportTicket): string[] => {
     const images: string[] = [];
     
-    // Helper function to validate and clean URLs
     const cleanUrl = (url: string) => {
       if (!url || typeof url !== 'string') return null;
-      // Remove any duplicate slashes except after protocol
       return url.replace(/(https?:\/\/)|(\/)+/g, "$1$2").trim();
     };
     
@@ -518,5 +515,13 @@ export function Benachrichtigungen() {
       )}
     </div>
   )
+}
+
+export default function CategoryPage() {
+  return (
+    <main className="container mx-auto p-4">
+      <Benachrichtigungen />
+    </main>
+  );
 }
 
