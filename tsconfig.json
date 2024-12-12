@@ -15,7 +15,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve", // Ändere dies von "preserve" auf "react-jsx"
+    "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
       {
@@ -29,7 +29,8 @@
       "@/components/ui/*": [
         "components/ui/*"
       ]
-    }
+    },
+    "baseUrl": "."
   },
   "include": [
     "next-env.d.ts",
@@ -41,3 +42,4 @@
     "node_modules"
   ]
 }
+

@@ -1,8 +1,9 @@
-import './globals.css'
+import '@/app/globals.css'
 import { Inter } from 'next/font/google'
-import { UserProvider } from '../contexts/UserContext'
+import { UserProvider } from '@/contexts/UserContext'
 import Navigation from '@/components/Navigation'
 import { Toaster } from "@/components/ui/toaster"
+import DashboardContent from '@/components/DashboardContent'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -11,23 +12,17 @@ export const metadata = {
   description: 'Ein System zur Verwaltung und Suche von Fehlermeldungen',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function DashboardPage() {
   return (
-    <html lang="de">
-      <body className={inter.className}>
-        <UserProvider>
-          <div className="container mx-auto p-4">
-            <Navigation />
-            {children}
-          </div>
-          <Toaster />
-        </UserProvider>
-      </body>
-    </html>
+    <div className={inter.className}>
+      <UserProvider>
+        <div className="container mx-auto p-4">
+          <Navigation />
+          <DashboardContent />
+        </div>
+        <Toaster />
+      </UserProvider>
+    </div>
   )
 }
 
