@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
+// Überprüfen Sie, ob der API-Schlüssel vorhanden ist
+if (!process.env.OPENAI_API_KEY) {
+  console.error('OPENAI_API_KEY ist nicht in den Umgebungsvariablen konfiguriert');
+  throw new Error('OpenAI API key is missing');
+}
+
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(req: Request) {
@@ -18,6 +24,10 @@ export async function POST(req: Request) {
         ...messages
       ],
     });
+
+    if (!openAIResponse.choices[0].message) {
+      throw new Error('Unerwartete Antwortstruktur von OpenAI');
+    }
 
     return NextResponse.json({ content: openAIResponse.choices[0].message.content });
   } catch (error) {
